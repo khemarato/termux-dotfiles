@@ -11,7 +11,7 @@ function doIt() {
 	rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" \
  --exclude "apt.sh" --exclude "git-completion.bash" --exclude "git-prompt.bash" \
   --exclude "dircolors" --exclude "aliases.bash" --exclude "functions.bash" \
-          -avh . ~;
+          --exclude "thaiwordlist.txt" -avh . ~;
 	source ~/.bash_profile;
 }
 
