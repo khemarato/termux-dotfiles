@@ -10,7 +10,8 @@ function doIt() {
         pip install youtube-dl tinyapi;
 	rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" \
  --exclude "apt.sh" --exclude "git-completion.bash" --exclude "git-prompt.bash" \
-          --exclude "dircolors" -avh --no-perms . ~;
+  --exclude "dircolors" --exclude "aliases.bash" --exclude "functions.bash" \
+          -avh . ~;
 	source ~/.bash_profile;
 }
 
