@@ -1,0 +1,26 @@
+[user]
+	email = theopenbuddhistuniversity@gmail.com
+	name = Khemarato Bhikkhu
+[alias]
+  hide = update-index --assume-unchanged
+  unhide = update-index --no-assume-unchange
+  hidden = "!git ls-files -v | grep ^h | cut -c 3-"
+  hideall = "!git ls-files -z | xargs -0 git update-index --assume-unchanged"
+  unhideall = "!git hidden | xargs -d '\n' git unhide"
+  c = commit
+  co = checkout
+  s = status
+  a = add
+  com = "!git add -A && git commit -m " 
+  undo = reset HEAD~
+
+[safe]
+	directory = /storage/emulated/0/Documents/
+	directory = /storage/emulated/0/Documents/buddhist-uni.github.io
+	directory = /storage/emulated/0/Documents/normalized-unicode-action
+	directory = /storage/emulated/0/Documents/jekyll-last-modified-at
+	directory = /storage/emulated/0/Documents/patanjali-yoga-sutra
+	directory = /storage/emulated/0/Documents/imgs
+	directory = /storage/emulated/0/Documents/chn-machine-translations
+[init]
+	defaultBranch = main

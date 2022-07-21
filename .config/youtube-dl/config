@@ -1,0 +1,7 @@
+--ignore-errors
+--output '~/storage/shared/Movies/%(title)s.%(ext)s'
+--format 'best[ext=mp4][height<=?360]/worst'
+--merge-output-format mp4
+--write-sub
+--audio-format mp3
+
