@@ -1,0 +1,18 @@
+alias ..="cd .."
+alias cd..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias .....="cd ../../../.."
+alias ......="cd ../../../../.."
+alias cdsd="cd /mnt/sdcard"
+alias path='echo -e ${PATH//:/\\n}'
+alias open="termux-open"
+alias copy="termux-clipboard-set"
+alias paste="termux-clipboard-get"
+alias which="command -v"
+alias s="git status"
+alias exif="exit"
+alias ls="ls -FA"
+alias dirsize="du -hs"
+alias scsearch="~/scv-bilara/scripts/search -om1"
+
