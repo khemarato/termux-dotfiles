@@ -9,9 +9,10 @@ function doIt() {
         /data/data/com.termux/files/usr/bin/python3 -m pip install --upgrade pip;
         pip install youtube-dl tinyapi;
 	rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" \
- --exclude "apt.sh" --exclude "git-completion.bash" --exclude "git-prompt.bash" \
+  --exclude "git-completion.bash" --exclude "git-prompt.bash" \
   --exclude "dircolors" --exclude "aliases.bash" --exclude "functions.bash" \
-          --exclude "thaiwordlist.txt" -avh . ~;
+  --exclude "thaiwordlist.txt" --exclude "en_words_huge.txt" --exclude "en_words_big.txt" --exclude "en_words.txt" \
+          -avh . ~;
 	source ~/.bash_profile;
 }
 
