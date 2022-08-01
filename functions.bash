@@ -79,7 +79,7 @@ pdfselect() {
     done
     if compgen -G "./$TEMPFILEPREFIX*.pdf" > /dev/null; then
       echo "Merging to $SELECTOUTFILEPREFIX$fd..."
-      pdfunite $TEMPFILEPREFIX*.pdf "$SELECTOUTFILEPREFIX$fd" && rm $TEMPFILEPREFIX*.pdf || exit 1
+      pdfunite $TEMPFILEPREFIX*.pdf "$SELECTOUTFILEPREFIX$fd" && rm $TEMPFILEPREFIX*.pdf
     fi
   done
 }
