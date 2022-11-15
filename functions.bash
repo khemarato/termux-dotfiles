@@ -47,6 +47,15 @@ mergeThesePdfsCmd() {
   echo "qpdf --empty --pages $(echo *.pdf | sed "s/ / '$pages' /g") '$pages' -- '$outf'"
 }
 
+normalizeLGNames() {
+  # remove anything in ()s
+  perl-rename -v "s/ \([a-zA-Z0-9-]*\)//g" *
+  # remove "-Publisher" from end
+  perl-rename -v 's/[a-z]-[A-Z][a-zA-Z 0-9]+\.(epub|pdf)/.$1/g' *
+  # flip from "Last, First - Title.ext" to "Title - First Last.ext"
+  perl-rename -v 's/([a-zA-Z'"'"' ]+)[,]*([a-zA-Z'"'"' ]*) - (.*)\.([a-z]+)/$3 -$2 $1.$4/g' *
+}
+
 SELECTOUTFILEPREFIX=select-pages-from-
 pdfselect() {
   # Uses poppler utils to extract specific pages

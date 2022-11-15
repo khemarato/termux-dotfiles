@@ -5,7 +5,7 @@ cd "$(dirname "${BASH_SOURCE}")";
 git pull;
 
 function doIt() {
-        pkg install -y rsync tree file build-essential git openssh binutils libandroid-spawn python ffmpeg youtubedr termux-api qpdf poppler exiftool ripgrep termux-exec imagemagick;
+        pkg install -y rsync tree file build-essential git openssh binutils libandroid-spawn python perl-rename ffmpeg youtubedr termux-api qpdf poppler exiftool ripgrep termux-exec imagemagick traceroute;
         /data/data/com.termux/files/usr/bin/python3 -m pip install --upgrade pip;
         pip install youtube-dl tinyapi;
 	rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" \
