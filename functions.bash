@@ -48,8 +48,9 @@ mergeThesePdfsCmd() {
 }
 
 normalizeLGNames() {
-  # remove anything in ()s
-  perl-rename -v "s/ \([a-zA-Z0-9-]*\)//g" *
+  # remove anything in ()s (space before or after)
+  perl-rename -v "s/\([a-zA-Z0-9 _\.-]*\) //g" *
+  perl-rename -v "s/ \([a-zA-Z0-9 _\.-]*\)//g" *
   # remove "-Publisher" from end
   perl-rename -v 's/[a-z]-[A-Z][a-zA-Z 0-9]+\.(epub|pdf)/.$1/g' *
   # flip from "Last, First - Title.ext" to "Title - First Last.ext"
