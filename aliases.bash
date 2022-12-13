@@ -5,6 +5,7 @@ alias ....="cd ../../.."
 alias .....="cd ../../../.."
 alias ......="cd ../../../../.."
 alias cdsd="cd /mnt/sdcard"
+alias cs="cd"
 alias path='echo -e ${PATH//:/\\n}'
 alias open="termux-open"
 alias copy="termux-clipboard-set"
