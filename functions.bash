@@ -114,16 +114,21 @@ edittedVolumeSplitter() {
   i=1
   while true
   do
-    read -e -d "$" -p "Filename (ending in $, empty=default): " FD
+    read -e -d "$" -p "Filename (ending in $, empty=quit): " FD
     if [ -z "$FD" ]; then
-      FD="$(printf "%03d-$1" $i)"
+      break
     else
       FD="${FD//[^A-Za-z0-9À-ÿĀ-žṭṅṇṃṁḍṛḷ一-鿯㐀-䶵，-？\,\. \[\]\(\)\"\'\<\>‘’‹›”“«»+@–—-]/_}.pdf"
     fi
-    read -e -p "Provide page range for paper #$i (enter to quit): " PR
-    if [ -z "$PR" ]; then
-      break
-    fi
+    while true
+    do
+      read -e -p "Provide page range for paper #$i: " PR
+      if [ -z "$PR" ]; then
+        continue
+      else
+        break
+      fi
+    done
     qpdf --empty --pages "$1" "$FP$PR$BP" -- "$FD"
     if [ $? -ne 0 ]; then
       echo "ERROR: qpdf exited with code $?"

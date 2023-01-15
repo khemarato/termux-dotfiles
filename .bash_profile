@@ -24,6 +24,8 @@ function prompt {
 
 # prompt
 PROMPT_COMMAND='__git_ps1 "\[\033[0;32m\]\w\[\033[0;36m\]" "\[\e[00m\]\$ "'
+# Save and reload the history after each command finishes
+PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 GIT_PS1_SHOWDIRTYSTATE="true"
 GIT_PS1_DESCRIBE_STYLE="branch"
 GIT_PS1_SHOWCOLORHINTS=""
