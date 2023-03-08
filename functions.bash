@@ -44,7 +44,11 @@ mergeThesePdfsCmd() {
   # run `mergeThesePdfsCmd | sh` to run the command
   pages="${1:-1-z}"
   outf="${2:-out.pdf}"
-  echo "qpdf --empty --pages $(echo *.pdf | sed "s/ / '$pages' /g") '$pages' -- '$outf'"
+  ret="qpdf --empty --pages "
+  for fd in *.pdf; do
+    ret="$ret '$fd' '$pages'"
+  done
+  echo "$ret -- '$outf'"
 }
 
 normalizeLGNames() {
@@ -53,8 +57,8 @@ normalizeLGNames() {
   perl-rename -v "s/ \([a-zA-Z0-9 _\.-]*\)//g" *
   # remove "-Publisher" from end
   perl-rename -v 's/([a-z])-[A-Z][a-zA-Z 0-9]+\.(cbz|epub|pdf)/$1.$2/g' *
-  # flip from "Last, First - Title.ext" to "Title - First Last.ext"
-  perl-rename -v 's/([a-zA-Z'"'"' ]+)[,]*([a-zA-Z'"'"' ]*) - (.*)\.([a-z]+)/$3 -$2 $1.$4/g' *
+  # flip from "Author - Title.ext" to "Title - Author.ext"
+  perl-rename -v 's/(.*) - (.*)\.([a-z0-9]+)$/$2 - $1.$3/g' *
 }
 
 SELECTOUTFILEPREFIX=select-pages-from-
