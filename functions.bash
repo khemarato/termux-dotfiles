@@ -45,8 +45,8 @@ mergeThesePdfsCmd() {
   pages="${1:-1-z}"
   outf="${2:-out.pdf}"
   ret="qpdf --empty --pages "
-  for fd in *.pdf; do
-    ret="$ret '$fd' '$pages'"
+  for fd in *; do
+    ret="$ret \"$fd\" '$pages'"
   done
   echo "$ret -- '$outf'"
 }
