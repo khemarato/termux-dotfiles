@@ -88,6 +88,36 @@ pdfselect() {
   done
 }
 
+sanitizeFilename() {
+  echo "${1//[^A-Za-z0-9À-ÿĀ-žṭṅṇṃṁḍṛḷ一-鿯㐀-䶵，-？\,\. \[\]\(\)\"\'\<\>‘’‹›”“«»+@–—-]/_}"
+}
+
+namepdf() {
+  title=$(exiftool -n -p '$Title' "$1")
+  title="${title//\.pdf/}"
+  if [ -z "$title" ]
+  then
+    echo "ERROR: Empty title"
+    return 1
+  else
+    FD="$(sanitizeFilename "$title").pdf"
+    if [ -f "$FD" ]; then
+      echo "ERROR: File already exists!"
+      return 1
+    else
+      echo "$1 => $FD"
+      mv "$1" "$FD"
+      return 0
+    fi
+  fi
+}
+
+nameAllPdfs() {
+  export -f sanitizeFilename
+  export -f namepdf
+  find . -maxdepth 1 -type f -iname "*.pdf" -print0 | xargs -0 -P 4 -I {} bash -c 'namepdf "$@"' _ {}
+}
+
 edittedVolumeSplitter() {
   # Uses qpdf to help split an editted volume
   # into N, named PDFs. Call with a single file
@@ -112,7 +142,7 @@ edittedVolumeSplitter() {
     if [ -z "$FD" ]; then
       break
     else
-      FD="${FD//[^A-Za-z0-9À-ÿĀ-žṭṅṇṃṁḍṛḷ一-鿯㐀-䶵，-？\,\. \[\]\(\)\"\'\<\>‘’‹›”“«»+@–—-]/_}.pdf"
+      FD="$(sanitizeFilename "$FD").pdf"
     fi
     while true
     do
