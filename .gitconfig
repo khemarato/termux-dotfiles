@@ -14,13 +14,5 @@
   com = "!git add -A && git commit -m " 
   undo = reset HEAD~
 
-[safe]
-	directory = /storage/emulated/0/Documents/
-	directory = /storage/emulated/0/Documents/buddhist-uni.github.io
-	directory = /storage/emulated/0/Documents/normalized-unicode-action
-	directory = /storage/emulated/0/Documents/jekyll-last-modified-at
-	directory = /storage/emulated/0/Documents/patanjali-yoga-sutra
-	directory = /storage/emulated/0/Documents/imgs
-	directory = /storage/emulated/0/Documents/chn-machine-translations
 [init]
 	defaultBranch = main
