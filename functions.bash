@@ -19,11 +19,14 @@ webm2ogg() {
     ffmpeg -v warning -i "$f" -vn -acodec copy "${f%.webm}.ogg" && rm "$f"
   done
 }
+opentermuxhome() {
+    am start -a android.intent.action.VIEW -d "content://com.android.externalstorage.documents/root/primary"
+}
 2worstmp3() {
   for f in "$@"
   do
     b=$(echo "$f" | rev | cut -f 2- -d '.' | rev)
-    echo "Converting \"$f\" to a:9 -lq.mp3..."
+    echo "Converting \"$f\" to a:9 -wq.mp3..."
     ffmpeg -v warning -n -i "$f" -codec:a libmp3lame -qscale:a 9 output.mp3 && mv output.mp3 "$b-wq.mp3"
   done
 }
