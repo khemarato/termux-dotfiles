@@ -8,9 +8,9 @@ function doIt() {
         mkdir -p ~/.local/share;
         pkg install -y rsync tree file build-essential git openssh binutils libandroid-spawn python perl-rename ffmpeg youtubedr termux-api qpdf poppler exiftool ripgrep termux-exec termux-tools imagemagick traceroute vim which;
         /data/data/com.termux/files/usr/bin/python3 -m pip install --upgrade pip;
-        pip install regex unidecode ipython feedyaspin google google-api-python-client google_auth_oauthlib joblib youtube-transcript-api youtube-dl pypdf titlecase pyyaml ebooklib python-slugify;
+        pip install regex pathvalidate unidecode ipython feedyaspin google google-api-python-client google_auth_oauthlib joblib youtube-transcript-api youtube-dl pypdf titlecase pyyaml ebooklib python-slugify;
         pkg install libxml2 libxslt;
-        pip install lxml bs4;
+        pip install lxml beautifulsoup4;
         pkg install python-numpy matplotlib tur-repo;
         pkg install python-scipy;
         pip install threadpoolctl wheel cython setuptools nltk;
