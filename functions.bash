@@ -180,18 +180,10 @@ cp_p () {
   rsync -WavP --human-readable --progress "$1" "$2"
 }
 
-# Use Git’s colored diff as diff
+# Use Git’s colored diff as gdiff
 hash git &>/dev/null;
 if [ $? -eq 0 ]; then
-	function diff() {
-		git diff --no-index --color-words "$@";
-	}
-fi;
-
-red diff as diff
-hash git &>/dev/null;
-if [ $? -eq 0 ]; then
-	function diff() {
+	function gdiff() {
 		git diff --no-index --color-words "$@";
 	}
 fi;
