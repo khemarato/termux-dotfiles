@@ -19,9 +19,6 @@ webm2ogg() {
     ffmpeg -v warning -i "$f" -vn -acodec copy "${f%.webm}.ogg" && rm "$f"
   done
 }
-opentermuxhome() {
-    am start -a android.intent.action.VIEW -d "content://com.android.externalstorage.documents/root/primary"
-}
 2worstmp3() {
   for f in "$@"
   do
@@ -184,6 +181,14 @@ cp_p () {
 }
 
 # Use Git’s colored diff as diff
+hash git &>/dev/null;
+if [ $? -eq 0 ]; then
+	function diff() {
+		git diff --no-index --color-words "$@";
+	}
+fi;
+
+red diff as diff
 hash git &>/dev/null;
 if [ $? -eq 0 ]; then
 	function diff() {
