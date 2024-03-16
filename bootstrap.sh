@@ -10,7 +10,7 @@ function doIt() {
         /data/data/com.termux/files/usr/bin/python3 -m pip install --upgrade pip;
         pip install regex pathvalidate unidecode ipython feedyaspin google google-api-python-client google_auth_oauthlib joblib youtube-transcript-api pypdf titlecase pyyaml ebooklib python-slugify python-frontmatter;
         pip install --upgrade --force-reinstall git+https://github.com/ytdl-org/youtube-dl.git
-        pkg install libxml2 libxslt;
+        pkg install libxml2 libxslt python-cryptography;
         pip install lxml beautifulsoup4;
         pkg install python-numpy matplotlib tur-repo;
         pkg install python-scipy;
