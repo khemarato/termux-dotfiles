@@ -14,8 +14,9 @@ function doIt() {
         pip install lxml beautifulsoup4;
         pkg install python-numpy matplotlib tur-repo;
         pkg install python-scipy;
-        pip install threadpoolctl wheel cython setuptools nltk;
-        pip install --no-build-isolation scikit-learn;
+        pip install threadpoolctl wheel cython setuptools nltk meson-python;
+        pip install --no-build-isolation scikit-learn pywavelets;
+        pip install imagehash;
         # pkg install nodejs-lts ruby;
 	rsync --exclude ".git/" --exclude ".DS_Store" --exclude "bootstrap.sh" \
   --exclude "git-completion.bash" --exclude "git-prompt.bash" \

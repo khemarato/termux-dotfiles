@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-cd /data/data/com.termux/files/home/storage/shared/Download/1DM/Documents
+cd /data/data/com.termux/files/home/storage/shared/Download/
 
 # remove anything in ()s (space before or after)
 perl-rename -v "s/\([a-zA-Z0-9 _\.-]*\) //g" *
