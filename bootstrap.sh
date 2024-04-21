@@ -13,8 +13,9 @@ function doIt() {
         pkg install libxml2 libxslt python-cryptography;
         pip install lxml beautifulsoup4;
         pkg install python-numpy matplotlib tur-repo;
-        pkg install python-scipy;
+        pkg install python-scipy libarrow-python;
         pip install threadpoolctl wheel cython setuptools nltk meson-python;
+        pkg install python-pandas;
         pip install --no-build-isolation scikit-learn pywavelets;
         pip install imagehash;
         # pkg install nodejs-lts ruby;

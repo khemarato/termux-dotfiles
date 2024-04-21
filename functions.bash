@@ -155,8 +155,7 @@ edittedVolumeSplitter() {
     done
     qpdf --empty --pages "$1" "$FP$PR$BP" -- "$FD"
     if [ $? -ne 0 ]; then
-      echo "ERROR: qpdf exited with code $?"
-      return 1
+      echo "ERROR: qpdf exited abnormally! Please check the PDF before proceding!"
     fi
     ((i=i+1))
   done
