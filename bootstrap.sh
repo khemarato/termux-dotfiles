@@ -6,9 +6,9 @@ git pull;
 
 function doIt() {
         mkdir -p ~/.local/share;
-        pkg install -y rsync unpaper pngquant jbig2enc jbig2enc-static ghostscript tesseract tree jq file build-essential git openssh binutils libandroid-spawn python perl-rename ffmpeg youtubedr termux-api qpdf poppler exiftool ripgrep termux-exec termux-tools imagemagick traceroute vim which;
-        /data/data/com.termux/files/usr/bin/python3 -m pip install --upgrade pip;
-        pip install regex pathvalidate unidecode ipython feedyaspin google google-api-python-client google_auth_oauthlib joblib youtube-transcript-api pypdf titlecase pyyaml ebooklib python-slugify python-frontmatter Mastodon.py ocrmypdf;
+        pkg install -y rsync unpaper pngquant jbig2enc jbig2enc-static ghostscript tesseract tree jq file build-essential git openssh binutils libandroid-spawn python python-pip perl-rename ffmpeg youtubedr termux-api qpdf poppler exiftool ripgrep termux-exec termux-tools imagemagick traceroute vim which;
+        pip install regex pathvalidate unidecode ipython feedreader yaspin google google-api-python-client google_auth_oauthlib joblib youtube-transcript-api pypdf titlecase pyyaml ebooklib python-slugify python-frontmatter Mastodon.py;
+        # pip install ocrmypdf; this is broken atm
         pip install --upgrade --force-reinstall git+https://github.com/ytdl-org/youtube-dl.git
         pkg install libxml2 libxslt python-cryptography;
         pip install lxml beautifulsoup4;
