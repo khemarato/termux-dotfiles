@@ -12,7 +12,7 @@
   s = status
   a = add
   com = "!git add -A && git commit -m " 
-  undo = reset HEAD~
+  uncommit = reset HEAD~
 
 [init]
 	defaultBranch = main
