@@ -38,6 +38,22 @@ webm2ogg() {
     ffmpeg -v warning -n -i "$f" -codec:a libmp3lame -qscale:a 7 output.mp3 && mv output.mp3 "$b-lq.mp3"
   done
 }
+cut_video() {
+    input_file="$1"
+    start_time="$2" # must be m:ss.s format
+    end_time="$3"
+    output_file="$4"
+
+    # Convert start and end times to seconds
+    start_seconds=$(echo "$start_time" | awk -F: '{ print ($1 * 60) + $2 }')
+    end_seconds=$(echo "$end_time" | awk -F: '{ print ($1 * 60) + $2 }')
+
+    # Calculate duration
+    duration=$(echo "$end_seconds - $start_seconds" | bc)
+
+    # Run ffmpeg command
+    ffmpeg -ss "$start_time" -i "$input_file" -t "$duration" -c copy "$output_file"
+}
 mergeThesePdfsCmd() {
   # If a publisher splits an OA Book into N Chapters
   # Use this cmd in a directory with only those PDFs
