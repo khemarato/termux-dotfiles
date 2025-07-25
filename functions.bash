@@ -26,16 +26,16 @@ webm2ogg() {
   for f in "$@"
   do
     b=$(echo "$f" | rev | cut -f 2- -d '.' | rev)
-    echo "Converting \"$f\" to a:9 -wq.mp3..."
-    ffmpeg -v warning -n -i "$f" -codec:a libmp3lame -qscale:a 9 output.mp3 && mv output.mp3 "$b-wq.mp3"
+    echo "Converting \"$f\" to a:9 ~56kbps.mp3..."
+    ffmpeg -v warning -n -i "$f" -codec:a libmp3lame -qscale:a 9 output.mp3 && mv output.mp3 "$b (56kbps).mp3"
   done
 }
 2lqmp3() {
   for f in "$@"
   do
     b=$(echo "$f" | rev | cut -f 2- -d '.' | rev)
-    echo "Converting \"$f\" to a:7 -lq.mp3..."
-    ffmpeg -v warning -n -i "$f" -codec:a libmp3lame -qscale:a 7 output.mp3 && mv output.mp3 "$b-lq.mp3"
+    echo "Converting \"$f\" to a:7 ~95kbps.mp3..."
+    ffmpeg -v warning -n -i "$f" -codec:a libmp3lame -qscale:a 7 output.mp3 && mv output.mp3 "$b (95kbps).mp3"
   done
 }
 cut_video() {
