@@ -1,59 +1,102 @@
 #!/bin/bash
 
-# Written together with Claude.ai
-
 cd "$1"
 echo "Will download files to '$(pwd)'"
 
 # Create temporary files for the queue and communication
 QUEUE_FILE=$(mktemp)
 STATUS_PIPE=$(mktemp -u)
+TIMING_DATA=$(mktemp)
 mkfifo "$STATUS_PIPE"
 exec {pipe_fd}<>"$STATUS_PIPE"
 
-# Variables for tracking download performance
-TOTAL_MB_DOWNLOADED=0
-TOTAL_MS_ELAPSED=0
+# Initialize timing data with Bayesian priors
+# Format: size_mb duration_seconds
+cat > "$TIMING_DATA" << EOF
+0	1
+1	13
+10	121
+EOF
 
 # Ensure temp files are cleaned up on exit
-trap 'rm -f "$QUEUE_FILE" "$STATUS_PIPE"; jobs -p | xargs -r kill' EXIT INT TERM
+trap 'rm -f "$QUEUE_FILE" "$STATUS_PIPE" "$TIMING_DATA"; jobs -p | xargs -r kill' EXIT INT TERM
 
-# Function to calculate estimated completion time based on current performance
-calculate_completion_time() {
-    # Calculate total size of remaining queue (excluding current file that was just downloaded)
-    local REMAINING_MB=0
-    if [ -s "$QUEUE_FILE" ]; then
-        REMAINING_MB=$(awk -F'\t' '{sum += $3} END {print sum}' "$QUEUE_FILE")
-    fi
-
-
-    if (( $(echo "$REMAINING_MB < 0.1" | bc -l) )); then
-        date '+%I:%M %p'
+# Function to calculate linear regression parameters (a, b) for y = ax + b
+calculate_regression() {
+    local data_file="$1"
+    
+    # Read data points
+    local n=0
+    local sum_x=0
+    local sum_y=0
+    local sum_xy=0
+    local sum_x2=0
+    
+    while IFS=$'\t' read -r x y; do
+        n=$((n + 1))
+        sum_x=$(echo "$sum_x + $x" | bc -l)
+        sum_y=$(echo "$sum_y + $y" | bc -l)
+        sum_xy=$(echo "$sum_xy + $x * $y" | bc -l)
+        sum_x2=$(echo "$sum_x2 + $x * $x" | bc -l)
+    done < "$data_file"
+    
+    # Calculate slope (a) and intercept (b)
+    local denominator=$(echo "$n * $sum_x2 - $sum_x * $sum_x" | bc -l)
+    if [ $(echo "$denominator == 0" | bc -l) -eq 1 ]; then
+        echo "1 10"  # Default fallback
         return
     fi
+    
+    local a=$(echo "scale=6; ($n * $sum_xy - $sum_x * $sum_y) / $denominator" | bc -l)
+    local b=$(echo "scale=6; ($sum_y - $a * $sum_x) / $n" | bc -l)
+    
+    echo "$a $b"
+}
 
-    # If we have download history and remaining files to download
-    if [ "$TOTAL_MS_ELAPSED" -gt 0 ]; then
-        # Calculate download rate (MB per millisecond)
-        local RATE=$(echo "$TOTAL_MB_DOWNLOADED / $TOTAL_MS_ELAPSED" | bc -l)
-        
-        # If rate is too small (approaching zero), handle it
-        if (( $(echo "$RATE < 0.0001" | bc -l) )); then
-            echo "unknown"
-            return
-        fi
-        
-        # Calculate estimated remaining time (in milliseconds)
-        local REMAINING_MS=$(echo "$REMAINING_MB / $RATE" | bc -l)
-        
-        # Get current timestamp and add the remaining milliseconds
-        local CURRENT_TIMESTAMP=$(date +%s)
-        local COMPLETION_TIMESTAMP=$(echo "$CURRENT_TIMESTAMP + ($REMAINING_MS / 1000)" | bc | cut -d. -f1)
-        
-        # Format the timestamp to a readable date and time
-        echo "$(date -d @"$COMPLETION_TIMESTAMP" '+%I:%M %p')"
+# Function to predict download time for a given file size
+predict_time() {
+    local size_mb="$1"
+    local regression_params=$(calculate_regression "$TIMING_DATA")
+    local a=$(echo "$regression_params" | cut -d' ' -f1)
+    local b=$(echo "$regression_params" | cut -d' ' -f2)
+    
+    local predicted_time=$(echo "scale=2; $a * $size_mb + $b" | bc -l)
+    
+    # Ensure minimum time of 1 second
+    if [ $(echo "$predicted_time < 1" | bc -l) -eq 1 ]; then
+        predicted_time=1
+    fi
+    
+    echo "$predicted_time"
+}
+
+# Function to estimate total remaining time
+estimate_remaining_time() {
+    local total_time=0
+    
+    if [ -s "$QUEUE_FILE" ]; then
+        while IFS=$'\t' read -r filename url size; do
+            local predicted=$(predict_time "$size")
+            total_time=$(echo "$total_time + $predicted" | bc -l)
+        done < <(sort -t $'\t' -k 3 -n "$QUEUE_FILE")
+    fi
+    
+    echo "$total_time"
+}
+
+# Function to format time in human-readable format
+format_time() {
+    local seconds="$1"
+    local hours=$(echo "$seconds / 3600" | bc)
+    local minutes=$(echo "($seconds % 3600) / 60" | bc)
+    local secs=$(echo "$seconds % 60" | bc)
+    
+    if [ "$hours" -gt 0 ]; then
+        printf "%dh %dm %ds" "$hours" "$minutes" "$secs"
+    elif [ "$minutes" -gt 0 ]; then
+        printf "%dm %ds" "$minutes" "$secs"
     else
-        echo "calculation error"
+        printf "%.1fs" "$seconds"
     fi
 }
 
@@ -78,26 +121,26 @@ calculate_completion_time() {
         
         # Download the file
         if wget -q "$URL" -O "$FILENAME"; then
-            # Record end time and calculate duration
             END_TIME=$(date +%s%3N)
             DURATION_MS=$((END_TIME - START_TIME))
-            
-            # Update tracking variables
-            TOTAL_MB_DOWNLOADED=$(echo "$TOTAL_MB_DOWNLOADED + $SIZE" | bc)
-            TOTAL_MS_ELAPSED=$(echo "$TOTAL_MS_ELAPSED + $DURATION_MS" | bc)
-            
-            # Remove this entry from the queue first, so it's not counted in remaining calculation
+            DURATION_SEC=$(echo "scale=3; $DURATION_MS / 1000" | bc -l)
+
+            # Add this data point to our timing data
+            echo -e "$SIZE\t$DURATION_SEC" >> "$TIMING_DATA"
+
+            # Remove this entry from the queue
             grep -v "^$FILENAME	$URL	$SIZE$" "$QUEUE_FILE" > "$QUEUE_FILE.tmp"
             mv "$QUEUE_FILE.tmp" "$QUEUE_FILE"
             
-            # Calculate estimated completion time
-            COMPLETION_TIME=$(calculate_completion_time)
+            # Calculate remaining time estimate
+            REMAINING_TIME=$(estimate_remaining_time)
+            REMAINING_FORMATTED=$(format_time "$REMAINING_TIME")
             
-            echo "SUCCESS: Downloaded '$FILENAME' ($SIZE MB) - ETA $COMPLETION_TIME" > "$STATUS_PIPE" &
+            echo "SUCCESS: Downloaded '$FILENAME' ($SIZE MB) in $(format_time "$DURATION_SEC") | Est. remaining: $REMAINING_FORMATTED" > "$STATUS_PIPE" &
         else
             echo "FAILED: Could not download '$FILENAME' from $URL" > "$STATUS_PIPE" &
             
-            # Remove this entry from the queue
+            # Remove this entry from the queue (don't add to timing data for failures)
             grep -v "^$FILENAME	$URL	$SIZE$" "$QUEUE_FILE" > "$QUEUE_FILE.tmp"
             mv "$QUEUE_FILE.tmp" "$QUEUE_FILE"
         fi
@@ -112,13 +155,20 @@ display_queue() {
     if [ ! -s "$QUEUE_FILE" ]; then
         echo "  Queue is empty"
     else
-        echo "  FILENAME | URL | SIZE(MB)"
+        echo "  FILENAME | URL | SIZE(MB) | EST. TIME"
         sort -t $'\t' -k 3 -n "$QUEUE_FILE" | while read -r LINE; do
             FILENAME=$(echo "$LINE" | cut -f1)
             URL=$(echo "$LINE" | cut -f2)
             SIZE=$(echo "$LINE" | cut -f3)
-            echo "  $FILENAME | $URL | $SIZE MB"
+            PREDICTED_TIME=$(predict_time "$SIZE")
+            FORMATTED_TIME=$(format_time "$PREDICTED_TIME")
+            echo "  $FILENAME | $URL | $SIZE MB | $FORMATTED_TIME"
         done
+        
+        # Show total estimated time
+        TOTAL_REMAINING=$(estimate_remaining_time)
+        TOTAL_FORMATTED=$(format_time "$TOTAL_REMAINING")
+        echo "  Total estimated time remaining: $TOTAL_FORMATTED"
     fi
 }
 
@@ -173,4 +223,3 @@ while [ -s "$QUEUE_FILE" ]; do
 done
 
 echo "All downloads completed. Exiting."
-

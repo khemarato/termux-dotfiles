@@ -25,6 +25,7 @@ export NODE_REPL_MODE='sloppy';
 export PYTHONIOENCODING='UTF-8';
 
 export PATH="/data/data/com.termux/files/home/.cargo/bin:$PATH"
+export TYPST_FONT_PATHS="/system/fonts/"
 
 eval "$(dircolors ~/termux-dotfiles/dircolors)"
 
