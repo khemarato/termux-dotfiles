@@ -21,6 +21,8 @@ if [ ! -d "$DOWNLOAD_DIR" ]; then
     exit 1
 fi
 
+cd "$DOWNLOAD_DIR"
+
 # Build the file list for dialog
 # Format: "Filename" "Size/Info" "OFF"
 FILES=()
@@ -28,7 +30,7 @@ while IFS= read -r -d '' file; do
     filename=$(basename "$file")
     # Add file to array: tag (path), item (filename), status (off)
     FILES+=("$file" "$filename" "off")
-done < <(find "$DOWNLOAD_DIR" -maxdepth 1 -type f -print0)
+done < <(find . -maxdepth 1 -type f -print0)
 
 # Check if files were found
 if [ ${#FILES[@]} -eq 0 ]; then
