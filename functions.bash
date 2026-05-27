@@ -2,7 +2,7 @@ search() {
 	ggrep -F -e "$1"
 }
 waitfor() { # waits for a pid to exit
-  lsof -p $1 +r 1 &>/dev/null
+  lsof -p $1 +r 10 &>/dev/null
 }
 ggrep() {
 	files=(`git grep --name-only "$@"`)
