@@ -3,11 +3,19 @@ import sys
 import re
 import time
 import threading
+import mimetypes
 from queue import PriorityQueue
 from urllib.parse import urlparse
 import requests
 from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter
 from tqdm import tqdm
+
+# Initialize the mimetypes database
+mimetypes.init()
+ADDITIONAL_EXTS = set([
+  '.epub',
+])
 
 # Ensure download directory is provided as a CLI argument
 if len(sys.argv) < 2:
@@ -17,12 +25,17 @@ if len(sys.argv) < 2:
 download_dir = sys.argv[1]
 os.makedirs(download_dir, exist_ok=True)
 
-# Priority Queue tracks tasks as (size_in_mb, (filename, url))
+# Scan for existing subfolders to populate the initial autocomplete list
+known_subfolders = set(
+  f for f in os.listdir(download_dir) if os.path.isdir(os.path.join(download_dir, f))
+)
+
+# Priority Queue tracks tasks as (size_in_mb, (filename, url, subfolder))
 download_queue = PriorityQueue()
 input_done = threading.Event()
 overall_pbar = None
 
-# Thread-safe tracker to bridge quiet background stats into visual bars later
+# Thread-safe tracker to bridge background stats into visual bars later
 worker_state = {
   'current_size_mb': 0.0,
   'bytes_downloaded': 0,
@@ -30,6 +43,13 @@ worker_state = {
   'is_active': False
 }
 state_lock = threading.Lock()
+
+def is_valid_extension(ext):
+  """Checks if the extension is recognized by the standard mimetypes library."""
+  if not ext or not ext.startswith('.'):
+    return False
+  ext_lower = ext.lower()
+  return ext_lower in mimetypes.types_map or ext_lower in mimetypes.common_types or ext_lower in ADDITIONAL_EXTS
 
 def sanitize_filename(name):
   """Removes newlines and unsafe characters while preserving spaces and unicode."""
@@ -49,8 +69,12 @@ def download_worker():
     except:
       continue
 
-    size, (filename, url) = item
-    filepath = os.path.join(download_dir, filename)
+    size, (filename, url, subfolder) = item
+    
+    # Target path includes subfolder if provided
+    target_dir = os.path.join(download_dir, subfolder) if subfolder else download_dir
+    os.makedirs(target_dir, exist_ok=True)
+    filepath = os.path.join(target_dir, filename)
     
     success = False
     for attempt in range(5):
@@ -76,14 +100,12 @@ def download_worker():
         else:
           raise requests.RequestException(f"HTTP Status {response.status_code}")
 
-        # Share current download progress context safely with the main thread
         with state_lock:
           worker_state['current_size_mb'] = size
           worker_state['bytes_downloaded'] = existing_size
           worker_state['total_file_bytes'] = total_size
           worker_state['is_active'] = True
 
-        # Render inner progress bar at position 1 if monitoring mode is active
         pbar = None
         if input_done.is_set():
           pbar = tqdm(total=total_size, initial=existing_size, unit='B', unit_scale=True, desc=filename, position=1, leave=False)
@@ -95,12 +117,10 @@ def download_worker():
               with state_lock:
                 worker_state['bytes_downloaded'] += len(chunk)
               
-              # Safely feed progress bars simultaneously
               if overall_pbar:
                 overall_pbar.update(len(chunk))
               if input_done.is_set():
                 if not pbar:
-                  # Catch mid-download transitions seamlessly
                   pbar = tqdm(total=total_size, initial=worker_state['bytes_downloaded'], unit='B', unit_scale=True, desc=filename, position=1, leave=False)
                 pbar.update(len(chunk))
 
@@ -143,15 +163,17 @@ try:
       
     url = prompt("Enter URL: ").strip()
     
+    # Extract extension and validate it against registered MIME types
     base, ext = os.path.splitext(filename)
-    if not ext:
+    if not is_valid_extension(ext):
+      # Try to find a valid extension from the URL path instead
       url_path = urlparse(url).path
-      url_ext = os.path.splitext(url_path)[1]
+      _, url_ext = os.path.splitext(url_path)
       
-      if url_ext:
+      if is_valid_extension(url_ext):
         filename = filename + url_ext
       else:
-        print("Could not guess extension from URL.")
+        print("Could not find a recognized file extension from the name or URL.")
         filename_raw = prompt("Enter filename with extension: ", default=filename)
         filename = "".join(filename_raw.splitlines()).strip()
 
@@ -164,8 +186,17 @@ try:
       print("Invalid size format. Defaulting to 0.0 MB for priority routing.")
       size = 0.0
 
-    download_queue.put((size, (filename, url)))
-    print(f"-> Added safely as '{filename}' ({size} MB) to background queue.")
+    # Provision tab completion for subfolders dynamically
+    subfolder_completer = WordCompleter(sorted(list(known_subfolders)), ignore_case=True)
+    subfolder = prompt("Enter subfolder (Tab to autocomplete, blank for root): ", completer=subfolder_completer).strip()
+    
+    if subfolder:
+      known_subfolders.add(subfolder)
+
+    download_queue.put((size, (filename, url, subfolder)))
+    
+    display_dest = os.path.join(subfolder, filename) if subfolder else filename
+    print(f"-> Added safely as '{display_dest}' ({size} MB) to background queue.")
 
 except KeyboardInterrupt:
   print("\nInput cancelled. Processing existing queue...")
@@ -198,7 +229,7 @@ overall_pbar = tqdm(
   unit_scale=True
 )
 
-# Signal worker to start rendering inner bars and processing terminations
+# Signal worker to start rendering inner bars
 input_done.set()
 
 # Block main thread until the queue is completely drained
